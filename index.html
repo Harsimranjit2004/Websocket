@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Document</title>
+   </head>
+   <body>
+      <h1>ball game</h1>
+      <button id="btnCreate">New game</button>
+      <button id="btnJoin">JOin game</button>
+      <input type="text" id="txtGameId" />
+      <div id="divPlayers"></div>
+      <script>
+         let clientId = null;
+         let gameId = null;
+         //html elements
+         let ws = new WebSocket("ws://localhost:9090");
+         console.log("hello");
+         console.log(ws);
+         const divPlayers = document.getElementById("divPlayers");
+         const btnCreate = document.getElementById("btnCreate");
+         const btnJoin = document.getElementById("btnJoin");
+         const txtGameId = document.getElementById("txtGameId");
+         // wiring events
+         btnJoin.addEventListener("click", (e) => {
+            if (gameId == null) {
+               gameId = txtGameId.value;
+            }
+            const payLoad = {
+               method: "join",
+               cliendId: clientId,
+               gameId: gameId,
+            };
+            ws.send(JSON.stringify(payLoad));
+         });
+         btnCreate.addEventListener("click", (e) => {
+            const payLoad = {
+               method: "create",
+               clientId: clientId,
+            };
+            console.log("hello");
+            ws.send(JSON.stringify(payLoad));
+         });
+
+         ws.onmessage = (message) => {
+            //message.data
+            console.log("indise messafge");
+            const respone = JSON.parse(message.data);
+            // connect
+            if (respone.method === "connect") {
+               console.log("inside connect");
+               clientId = respone.clientId;
+               console.log("Client id set successfully " + clientId);
+            }
+            // create cmd
+            if (respone.method === "create") {
+               // clientId = respone.clientId;
+               gameId = respone.game.id;
+               console.log(
+                  "game successfully create with id " +
+                     respone.game.id +
+                     "with" +
+                     respone.game.balls
+               );
+            }
+            if (respone.method === "join") {
+               const game = respone.game;
+               while (!divPlayers.firstChild)
+                  divPlayers.removeChild(divPlayers.firstChild);
+
+               game.clients.forEach((element) => {
+                  const d = document.createElement("div");
+                  d.style.width = "200px";
+                  d.style.background = c.color;
+                  d.textContent = c.cliendId;
+                  divPlayers.appendChild(d);
+               });
+            }
+            console.log(respone);
+         };
+      </script>
+   </body>
+</html>
